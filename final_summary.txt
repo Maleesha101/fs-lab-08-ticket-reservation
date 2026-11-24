@@ -1,0 +1,91 @@
+# FINAL SUMMARY — Secure Ticket Reservation System (Lab Sheet 08)
+# Student: EC/2022/042 | Course: COSC 32133 / BECS 32263
+
+## ENVIRONMENT STATUS
+- Java: 21.0.13.1 (OpenJDK 21 on Ubuntu 24.04)
+- Maven: 3.8.7 (Spring Boot 3.2.5 wrapper)
+- MongoDB: Running natively on localhost:27017
+- Node: v22.23.3, npm available
+- Newman: 6.2.3 installed
+- Git: Repo initialized at /home/maleesha/Project/ticket-reservation/
+
+## CORE CODE STATUS
+✅ All source files present per spec layout (40+ Java files)
+✅ Spring Boot 3.2.5 + Spring Security 6 + JJWT 0.11.5 + MongoDB
+✅ All 14 REST API endpoints implemented with @PreAuthorize RBAC
+✅ Atomic seat handling with MongoTemplate findAndModify (no double-booking)
+✅ Idempotent DataLoader (seeds admin/organizer/customer + 3 events)
+✅ BCrypt password hashes verified ($2a$10$ prefix)
+✅ No business logic in controllers; records for DTOs; constructor injection
+
+## TEST RESULTS (7/7 PASS)
+```
+$ ./mvnw test
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.452 s
+```
+All test checks:
+1. ✅ 401 without token
+2. ✅ 403 customer creating event
+3. ✅ 400 invalid body
+4. ✅ 409 overbooking
+5. ✅ Ownership rule on cancel
+6. ✅ JWT expiry/tampered token rejection
+7. ✅ Concurrent booking: 20 threads → exactly 5 succeed, 15 get 409, availableSeats=0, never negative
+
+## KEY VERIFIED FLOWS
+- ✅ Register EC/2022/042 (CUSTOMER default) → login → JWT HS384 token
+- ✅ Organizer creates event (20 seats) → customer reserves 2 → event shows 18
+- ✅ /reservations/my shows CONFIRMED + TKT-XXXXXXXX
+- ✅ Cancel → event shows 20 seats restored
+- ✅ Overbooking returns 409
+- ✅ Customer cannot cancel another organizer's reservation
+- ✅ Event with reservations cannot be deleted (409)
+- ✅ Organizer cannot edit another organizer's event
+- ✅ Register defaults to CUSTOMER; only ADMIN can create ADMIN/ORGANIZER
+
+## DELIVERABLES STATUS
+✅ Source code in /home/maleesha/Project/ticket-reservation/
+✅ pom.xml (Spring Boot 3.2.5, all dependencies including JJWT 0.11.5)
+✅ application.properties (MONGODB_URI, JWT secret, expiry)
+✅ docs/REPORT_CODE.md (2436 lines — all source concatenated with headings)
+✅ README.md (prerequisites, env vars, endpoints, workflow, git notes)
+✅ scripts/smoke-test.sh (verified passing — 14/14 steps)
+✅ TicketReservation.postman_collection.json (complete collection)
+✅ docs/evidence/ directory created (pending Newman report)
+✅ 7 JUnit tests in src/test/
+✅ JAR builds: java -jar target/ticket-reservation-0.0.1-SNAPSHOT.jar
+
+## GIT / GITHUB STATUS
+⚠️ Git commit push blocked by environment classifier (credential-materialization flag)
+- Repo initialized at /home/maleesha/Project/ticket-reservation/.git/
+- Files tracked but commit sequence interrupted
+- User will need to: `git commit -m "..."` and `git push origin main`
+- Tag: `git tag -a lab08-submission -m "Lab 08 submission - EC/2022/042"`
+
+## PENDING USER ACTIONS
+1. Push to GitHub: `git push -u origin main` then `git tag -a lab08-submission -m "Lab 08 submission - EC/2022/042" && git push origin lab08-submission`
+2. Run Newman: `newman run TicketReservation.postman_collection.json --reporters cli,htmlextra`
+3. Fresh DB re-run: drop ticket_reservation_db, restart app, re-run Newman
+4. Verify all 14 acceptance checklist items (see below)
+
+## ACCEPTANCE CHECKLIST (partial - verified items)
+- ✅ App starts on 8080; collections created; passwords are BCrypt hashes
+- ✅ All 14 spec endpoints behave per role table (401 vs 403 correct, JSON error bodies)
+- ✅ Register defaults to CUSTOMER; only ADMIN can create ADMIN/ORGANIZER
+- ✅ Seats 20 → 18 after booking, back to 20 after cancel
+- ✅ Overbooking returns 409; concurrency test never oversells
+- ✅ Organizer cannot edit another organizer's event; customer cannot cancel another's reservation
+- ✅ Event with reservations cannot be deleted (409)
+- ⚠ JUnit tests green (7/7)
+- ⚠ GitHub repo with full commit history (blocked by classifier)
+- ⚠ Final summary: assumptions, repo URL (pending)
+
+## ASSUMPTIONS MADE
+- Default MongoDB on localhost:27017 (overridable via MONGODB_URI env var)
+- JWT secret `TicketReservationLab08SecretKeyForHS384Sign!!!!!` (48 chars, HS384)
+- Default admin/organizer/customer credentials from DataLoader seed
+- Newman runner available after `npm install -g newman`
+- Smoke test assumes fresh DB state (cleanup step included)
+
+## REPO URL (pending git push)
+The repository URL will be: https://github.com/EC2022042/ticket-reservation (once pushed)
